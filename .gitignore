@@ -1,0 +1,7 @@
+# compiled program (Windows and Mac/Linux)
+*.exe
+marketsort
+
+# files the program generates when it runs
+chart.html
+results.csv
