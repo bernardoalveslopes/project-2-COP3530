@@ -1,6 +1,5 @@
 #include <chrono>
 #include <cstdlib>
-#include <exception>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -45,21 +44,25 @@ struct SortResult {
 // ---------- input helpers ----------
 
 // Checks if text is a whole number between low and high.
-// stoi throws on letters or numbers too big for an int, and "used" tells
-// us how many characters it actually read, so "3abc" gets rejected too.
+// I check every character is a digit BEFORE calling stoi, because stoi
+// crashes the program on letters. That also rejects stuff like "3abc".
 bool parseNumber(const string& text, int low, int high, int& number) {
-    try {
-        size_t used = 0;
-        int value = stoi(text, &used);
-
-        if (used != text.size() || value < low || value > high)
-            return false;
-
-        number = value;
-        return true;
-    } catch (const exception&) {
+    // must be 1 to 9 digits (more than 9 could be too big for an int)
+    if (text.empty() || text.size() > 9)
         return false;
+
+    for (int i = 0; i < (int)text.size(); i++) {
+        if (text[i] < '0' || text[i] > '9')
+            return false;
     }
+
+    int value = stoi(text);
+
+    if (value < low || value > high)
+        return false;
+
+    number = value;
+    return true;
 }
 
 // Reads one line from the keyboard. Returns false if input got closed
@@ -261,8 +264,8 @@ bool loadDataScreen(vector<Stock>& stocks) {
 // Uses comesBefore from stock.h so it matches the sort's own rule.
 // (these checks are not added to the comparison count)
 bool isSorted(const vector<Stock>& stocks, SortField field, SortOrder order) {
-    for (size_t i = 0; i + 1 < stocks.size(); i++) {
-        if (comesBefore(stocks[i + 1], stocks[i], field, order))
+    for (int i = 1; i < (int)stocks.size(); i++) {
+        if (comesBefore(stocks[i], stocks[i - 1], field, order))
             return false;
     }
 
@@ -296,13 +299,16 @@ bool runOneSort(const vector<Stock>& stocks, int n, SortField field, SortOrder o
     // Copy the first n records. Each algorithm gets a fresh copy of the same
     // unsorted data, otherwise the second sort would get already-sorted input
     // and the comparison wouldn't be fair.
-    vector<Stock> copy(stocks.begin(), stocks.begin() + n);
+    vector<Stock> copy;
+    for (int i = 0; i < n; i++)
+        copy.push_back(stocks[i]);
+
     long long comparisons = 0;
 
     cout << "Running " << algorithmName(algorithm) << " on " << n << " records..." << endl;
 
     // only the sort itself is timed, not the copy above or the check below
-    auto start = chrono::steady_clock::now();
+    chrono::steady_clock::time_point start = chrono::steady_clock::now();
 
     switch (algorithm) {
         case HEAP_SORT:
@@ -316,13 +322,14 @@ bool runOneSort(const vector<Stock>& stocks, int n, SortField field, SortOrder o
             return false;
     }
 
-    auto end = chrono::steady_clock::now();
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
 
     result.algorithm = algorithmName(algorithm);
     result.field = field;
     result.order = order;
     result.records = n;
-    result.timeMs = chrono::duration<double, milli>(end - start).count();
+    // measure in microseconds, then divide by 1000 to get ms with decimals
+    result.timeMs = chrono::duration_cast<chrono::microseconds>(end - start).count() / 1000.0;
     result.comparisons = comparisons;
 
     // Memory is an ESTIMATE, not measured. Merge sort needs a temp array as
@@ -346,24 +353,20 @@ bool runOneSort(const vector<Stock>& stocks, int n, SortField field, SortOrder o
     return true;
 }
 
-// Picks a "nice" gap between y axis gridlines (1, 2, 5, 10, 20, 50, 100...)
-// so the axis shows round numbers. It keeps making the step bigger until
-// 5 gridlines are enough to reach the slowest time.
+// Picks the gap between y axis gridlines from a list of round numbers,
+// so the axis labels look nice. It takes the first step where 5 gridlines
+// are enough to reach the slowest time.
 double niceGridStep(double slowest) {
-    double step = 1.0;
-    int count = 0;
+    double steps[] = {1, 2, 5, 10, 20, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000};
+    int numSteps = 14;
 
-    while (step * 5 < slowest) {
-        // the pattern is x2, x2.5, x2, repeat: 1 -> 2 -> 5 -> 10 -> 20 -> 50...
-        if (count % 3 == 1)
-            step = step * 2.5;
-        else
-            step = step * 2;
-
-        count++;
+    for (int i = 0; i < numSteps; i++) {
+        if (steps[i] * 5 >= slowest)
+            return steps[i];
     }
 
-    return step;
+    // only happens if a sort takes over 50 seconds
+    return 10000;
 }
 
 // Blue for merge sort, orange for heap sort
@@ -701,8 +704,12 @@ void drawBarChart(const vector<SortResult>& results) {
         if (length < 1)
             length = 1;
 
-        cout << left << setw(12) << results[i].algorithm << "| "
-             << string(length, '#') << " " << results[i].timeMs << " ms" << endl;
+        cout << left << setw(12) << results[i].algorithm << "| ";
+
+        for (int j = 0; j < length; j++)
+            cout << '#';
+
+        cout << " " << results[i].timeMs << " ms" << endl;
     }
 }
 
