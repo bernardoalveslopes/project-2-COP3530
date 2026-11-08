@@ -4,7 +4,7 @@
 #include <vector>
 #include "stock.h"
 
-// Merge Sort, written by hand (no std::sort, std::stable_sort, or std::merge).
+//
 //
 // References:
 //   Cormen, Leiserson, Rivest, and Stein, "Introduction to Algorithms",
@@ -19,22 +19,19 @@
 // Extra memory: one helper array of n records, plus O(log n) for recursion.
 // Stable: records with equal keys keep their original order.
 
-// Merges the two sorted halves stocks[left..mid] and stocks[mid+1..right]
-// into one sorted run, using temp as scratch space.
 inline void mergeHalves(std::vector<Stock>& stocks, std::vector<Stock>& temp,
                         int left, int mid, int right,
                         SortField field, SortOrder order,
                         long long& comparisons) {
 
-    int i = left;      // next record in the left half
-    int j = mid + 1;   // next record in the right half
-    int k = left;      // next free spot in temp
+    int i = left;     
+    int j = mid + 1;  
+    int k = left;    
 
     while (i <= mid && j <= right) {
         comparisons++;
 
-        // Take from the right half only when it strictly comes first.
-        // On a tie the left record goes first, which keeps the sort stable.
+
         if (comesBefore(stocks[j], stocks[i], field, order)) {
             temp[k] = stocks[j];
             j++;
@@ -46,7 +43,7 @@ inline void mergeHalves(std::vector<Stock>& stocks, std::vector<Stock>& temp,
         k++;
     }
 
-    // One half is used up, so copy whatever is left in the other half
+
     while (i <= mid) {
         temp[k] = stocks[i];
         i++;
@@ -59,13 +56,12 @@ inline void mergeHalves(std::vector<Stock>& stocks, std::vector<Stock>& temp,
         k++;
     }
 
-    // Copy the merged run back into stocks
+
     for (int m = left; m <= right; m++)
         stocks[m] = temp[m];
 }
 
-// Sorts stocks[left..right]: split it in half, sort each half,
-// then merge the two sorted halves.
+
 inline void mergeSortRange(std::vector<Stock>& stocks, std::vector<Stock>& temp,
                            int left, int right,
                            SortField field, SortOrder order,
@@ -75,7 +71,7 @@ inline void mergeSortRange(std::vector<Stock>& stocks, std::vector<Stock>& temp,
     if (left >= right)
         return;
 
-    // written this way instead of (left + right) / 2 so it can't overflow
+
     int mid = left + (right - left) / 2;
 
     mergeSortRange(stocks, temp, left, mid, field, order, comparisons);
@@ -83,7 +79,6 @@ inline void mergeSortRange(std::vector<Stock>& stocks, std::vector<Stock>& temp,
     mergeHalves(stocks, temp, left, mid, right, field, order, comparisons);
 }
 
-// Same arguments as heapSort, so the menu can call either one.
 inline void mergeSort(std::vector<Stock>& stocks, SortField field,
                       SortOrder order, long long& comparisons) {
 
