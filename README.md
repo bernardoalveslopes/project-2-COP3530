@@ -1,6 +1,39 @@
 <H1> COP3530 - Project 2 </h1>
 This is the template for Project 2 repositories. It includes all the assignment instructions and documentation to help you use GitHub.
 
+## How to Run
+
+**Requirements**
+- A C++14 compiler such as g++. On Windows, MinGW-w64 works: `winget install -e --id BrechtSanders.WinLibs.POSIX.UCRT`
+- The S&P 500 dataset `all_stocks_5yr.csv` from [Kaggle](https://www.kaggle.com/datasets/camnugent/sandp500). It's already in this repo at `data/all_stocks_5yr.csv`.
+
+**Where the CSV goes**
+
+When you press Enter at the load prompt, the program looks for `all_stocks_5yr.csv` in the folder you run it from, then `data/all_stocks_5yr.csv`. You can also type any other path.
+
+**Compile**
+```
+g++ -std=c++14 -O2 main.cpp -o marketsort
+```
+Compile `main.cpp` by itself. `test_main.cpp` is a separate heap sort test with its own `main()`, so compiling both together fails.
+
+**Run**
+- Windows (PowerShell): `.\marketsort`
+- Mac/Linux: `./marketsort`
+
+**Menu options**
+1. **Load Stock Data**: loads the CSV and shows the record count, the columns and the first 5 rows.
+2. **Sort and Analyze**: pick the field (Closing Price, Trading Volume, Date), the order, the algorithm (Merge, Heap or Compare Both) and how many records to sort.
+3. **Compare Algorithms**: runs both algorithms with the current settings on copies of the same data.
+4. **View Results**: shows time, comparisons and estimated memory, checks that the output is really sorted, draws a text bar chart, and can open the HTML chart in your browser.
+5. **Exit**
+
+Merge sort shows "Merge sort not available yet" until `mergesort.h` is added.
+
+**Output files** (both are in `.gitignore`)
+- `results.csv`: one line per sort run (algorithm, field, records, time_ms, comparisons, memory_mb). New runs are added to the end, so it's handy for report graphs.
+- `chart.html`: a bar chart of the latest run's times. Open it in any browser. The "Open chart in browser" option uses the Windows `start` command, so on Mac/Linux open the file yourself.
+
 <h2> Table of Contents </h2>
 
 - [Documentation and resources on how to use GitHub for Project 2](#documentation-and-resources-on-how-to-use-github-for-project-3)
