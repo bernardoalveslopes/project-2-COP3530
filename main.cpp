@@ -8,8 +8,7 @@
 #include "stock.h"
 #include "dataloader.h"
 #include "heapsort.h"
-// MERGESORT (1 of 2): uncomment this once Bernardo pushes mergesort.h
-// #include "mergesort.h"
+#include "mergesort.h"
 
 using namespace std;
 
@@ -293,7 +292,7 @@ void appendToResultsFile(const SortResult& result) {
 }
 
 // Runs one algorithm on its own copy of the first n records and fills in
-// result. Returns false if the algorithm couldn't run (merge sort for now).
+// result. Returns false if the algorithm id is unknown.
 bool runOneSort(const vector<Stock>& stocks, int n, SortField field, SortOrder order,
                 int algorithm, SortResult& result) {
     // Copy the first n records. Each algorithm gets a fresh copy of the same
@@ -315,10 +314,10 @@ bool runOneSort(const vector<Stock>& stocks, int n, SortField field, SortOrder o
             heapSort(copy, field, order, comparisons);
             break;
         case MERGE_SORT:
-            // MERGESORT (2 of 2): uncomment the mergeSort line below,
-            // then delete the cout and return lines under it
-            // mergeSort(copy, field, order, comparisons);
-            cout << "Merge sort not available yet." << endl;
+            mergeSort(copy, field, order, comparisons);
+            break;
+        default:
+            cout << "Unknown algorithm." << endl;
             return false;
     }
 
@@ -509,7 +508,8 @@ void writeChartHtml(const vector<SortResult>& results) {
     out << "</table>\n";
 
     if (!hasMerge)
-        out << "<p class=\"note\">Merge Sort: pending (not run this time).</p>\n";
+        out << "<p class=\"note\">Merge Sort: not run this time.</p>\n";
+
 
     out << "<p class=\"note\">Times vary by system (CPU, other programs running, compiler settings).</p>\n"
         << "</div>\n</body>\n</html>\n";
@@ -528,7 +528,7 @@ void openChart() {
 }
 
 // Runs merge, heap or both, and saves what finished into results.
-// If nothing could run (merge only, for now), the old results are kept.
+// If nothing could run, the old results are kept.
 void runAlgorithms(const vector<Stock>& stocks, int n, SortField field, SortOrder order,
                    int algorithm, vector<SortResult>& results) {
     vector<SortResult> newResults;
