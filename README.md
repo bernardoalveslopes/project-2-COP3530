@@ -15,7 +15,17 @@ When you press Enter at the load prompt, the program looks for `all_stocks_5yr.c
 ```
 g++ -std=c++14 -O2 main.cpp -o marketsort
 ```
-Compile `main.cpp` by itself. `test_main.cpp` is a separate heap sort test with its own `main()`, so compiling both together fails.
+Compile `main.cpp` by itself. `test_main.cpp` (heap sort) and `test_mergesort.cpp` (merge sort and the data loader) are separate tests with their own `main()`, so compiling them together with `main.cpp` fails.
+
+**Run the tests**
+```
+g++ -std=c++14 -O2 test_mergesort.cpp -o test_mergesort
+```
+Run it from the repo folder so it finds `data/all_stocks_5yr.csv`. It sorts every field and order on small inputs and the full dataset, and checks the output is sorted, no record is lost and ties keep their original order.
+
+**If the program crashes right at startup**
+
+This can happen in Git Bash when Git's own copy of the C++ runtime is found before MinGW's. Run it from PowerShell instead, or compile with `-static`.
 
 **Run**
 - Windows (PowerShell): `.\marketsort`
@@ -25,10 +35,11 @@ Compile `main.cpp` by itself. `test_main.cpp` is a separate heap sort test with 
 1. **Load Stock Data**: loads the CSV and shows the record count, the columns and the first 5 rows.
 2. **Sort and Analyze**: pick the field (Closing Price, Trading Volume, Date), the order, the algorithm (Merge, Heap or Compare Both) and how many records to sort.
 3. **Compare Algorithms**: runs both algorithms with the current settings on copies of the same data.
-4. **View Results**: shows time, comparisons and estimated memory, checks that the output is really sorted, draws a text bar chart, and can open the HTML chart in your browser.
+4. **View Results**: shows time, comparisons and estimated memory, checks that the output is really sorted, lists the top 10 sorted records, draws a text bar chart, and can open the HTML chart in your browser.
 5. **Exit**
 
-Merge sort shows "Merge sort not available yet" until `mergesort.h` is added.
+Both sorts are written by hand in `mergesort.h` and `heapsort.h`, with no library sorting functions.
+
 
 **Output files** (both are in `.gitignore`)
 - `results.csv`: one line per sort run (algorithm, field, records, time_ms, comparisons, memory_mb). New runs are added to the end, so it's handy for report graphs.
