@@ -27,6 +27,9 @@ const int COMPARE_BOTH = 3;
 // how many # the slowest algorithm gets in the bar chart
 const int BAR_WIDTH = 50;
 
+// how many sorted records View Results shows
+const int TOP_RECORDS = 10;
+
 // One finished sort run, so View Results can show it later.
 // This is my own struct for the results screen, not a copy of Stock.
 struct SortResult {
@@ -38,6 +41,7 @@ struct SortResult {
     long long comparisons;
     double memoryMB;
     bool sortedCorrectly;
+    vector<Stock> topRecords;  // the first TOP_RECORDS records of the sorted output
 };
 
 // ---------- input helpers ----------
@@ -344,6 +348,11 @@ bool runOneSort(const vector<Stock>& stocks, int n, SortField field, SortOrder o
 
     result.sortedCorrectly = isSorted(copy, field, order);
 
+    // keep the first few sorted records so View Results can show the top 10
+    result.topRecords.clear();
+    for (int i = 0; i < n && i < TOP_RECORDS; i++)
+        result.topRecords.push_back(copy[i]);
+
     cout << result.algorithm << " done: " << result.timeMs << " ms, "
          << result.comparisons << " comparisons" << endl;
 
@@ -550,7 +559,7 @@ void runAlgorithms(const vector<Stock>& stocks, int n, SortField field, SortOrde
     results = newResults;
     writeChartHtml(results);
     cout << "Saved to " << RESULTS_FILE << " and " << CHART_FILE
-         << ". Pick 4 (View Results) to see the table and chart." << endl;
+         << ". Pick 4 (View Results) to see the table, top 10 and chart." << endl;
 }
 
 // Option 2: pick the field, order, algorithm and how many records, then sort
@@ -680,6 +689,18 @@ void printCorrectnessCheck(const vector<SortResult>& results) {
         cout << "Something went wrong, check the sort code." << endl;
 }
 
+// Prints the top records of the last run for the field the user picked.
+// Both algorithms give the same order of keys, so the first result is used.
+// (Heap sort isn't stable, so records with equal keys can come out in a
+// different order than merge sort puts them.)
+void printTopRecords(const vector<SortResult>& results) {
+    cout << "\nTop " << results[0].topRecords.size() << " by " << fieldName(results[0].field)
+         << " (" << orderName(results[0].order) << "), from " << results[0].algorithm
+         << ":" << endl;
+
+    printStockRows(results[0].topRecords, TOP_RECORDS);
+}
+
 // Draws a sideways bar chart of the times with #.
 // Every bar is scaled against the slowest time, so the slowest one gets
 // BAR_WIDTH #'s and a sort that took half as long gets half as many.
@@ -713,8 +734,8 @@ void drawBarChart(const vector<SortResult>& results) {
     }
 }
 
-// Option 4: shows the table, the correctness check and the # bar chart
-// for the last run, then offers to open the real chart in the browser
+// Option 4: shows the table, the correctness check, the top 10 records and
+// the # bar chart for the last run, then offers to open the real chart
 void viewResultsScreen(const vector<SortResult>& results) {
     if (results.empty()) {
         cout << "No results yet. Run a sort first (option 2 or 3)." << endl;
@@ -723,7 +744,9 @@ void viewResultsScreen(const vector<SortResult>& results) {
 
     printResultsTable(results);
     printCorrectnessCheck(results);
+    printTopRecords(results);
     drawBarChart(results);
+
     cout << "\n(Every run is also saved in " << RESULTS_FILE << ")" << endl;
 
     cout << "\n1. Open chart in browser" << endl;
